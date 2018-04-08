@@ -9,23 +9,25 @@
 #include "eeconfig.h"
 #include "wait.h"
 #include "version.h"
+#include "mousekey.h"
+#include "host.h"
 
 
 #define BASE 0 // default layer
-#define DVRK 1 // Dvorak
-#define FKEY 2 // F keys
-#define SYMB 3 // symbols
-#define NUM  4 // numpad
-#define MDIA 5 // media keys
-#define ARRW 6 // Arrows
-#define GAME 7 // gaming keys
-#define GAME2 8 // gaming keys
-#define REST 9 // flash mode
-#define LAYER_MODOLUS 10 // highest layer + 1
+#define GAME 1 // gaming keys
+#define GAME2 2 // gaming keys
+#define FKEY 3 // F keys
+#define SYMB 4 // symbols
+#define NUM  5 // numpad
+#define MDIA 6 // media keys
+#define ARRW 7 // Arrows
+#define REST 8 // flash mode
+#define LAYER_MODOLUS 9 // highest layer + 1
 
 
 static uint16_t key_timer;
-
+uint8_t is_game = 0;
+uint8_t is_game2 = 0;
 
 uint8_t next_layer = 0;
 //Tap Dance Declarations
@@ -41,6 +43,11 @@ enum {
   CT_AFW,
   CT_LU,
   CT_DN,
+  GT_F1,
+  GT_F2,
+  GT_F3,
+  GT_F4,
+  GT_F5,
 };
 
 // macro deceletations
@@ -48,12 +55,17 @@ enum {
   MC_CP = 0 // copy on hold, paste on tap
 };
 
+enum custom_keycodes {
+    MC_MTAP = SAFE_RANGE,
+    MC_FTAP
+};
+
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 /* Keymap 0: Basic layer
  *
  * ,--------------------------------------------------.           ,--------------------------------------------------.
- * |   =    |   1  |   2  |   3  |   4  |   5  |  F5  |           | Esc  |   6  |   7  |   8  |   9  |   0  |   rofi |
+ * |   =    |   1  |   2  |   3  |   4  |   5  | Lead |           | Esc  |   6  |   7  |   8  |   9  |   0  |   rofi |
  * |--------+------+------+------+------+-------------|           |------+------+------+------+------+------+--------|
  * |Tab/ARRW|   Q  |   W  |   E  |   R  |   T  |      |           |      |   Y  |   U  |   I  |   O  |   P  |   \    |
  * |--------+------+------+------+------+------|   /  |           | SF11 |------+------+------+------+------+--------|
@@ -61,7 +73,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |--------+------+------+------+------+------|   .  |           |OS Sb |------+------+------+------+------+--------|
  * | Shift  |   Z  |   X  |   C  |   V  |   B  |   ,  |           |      |   N  |   M  |   ,  |   .  |   /  | RCtrl  |
  * `--------+------+------+------+------+-------------'           `-------------+------+------+------+------+--------'
- *   | LD   |   \  |   ~  | Alt  | ;/:  |                                       |   -  |OS Sb |OS FL | NumPL|  LU   |
+ *   |      |   \  |   ~  | Alt  | ;/:  |                                       |   -  |OS Sb |OS FL | NumPL|       |
  *   `----------------------------------'                                       `-----------------------------------'
  *                                      ,---------------.       ,---------------.
  *                                      |  Esc   |   <  |       |   >  |  Lead  |  
@@ -75,11 +87,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 // Otherwise, it needs KC_*
 [BASE] = KEYMAP(  // layer 0 : default
     // left hand
-    KC_EQL,          KC_1,         KC_2,          KC_3,    KC_4,    KC_5,   KC_F5,
+    KC_EQL,          KC_1,         KC_2,          KC_3,    KC_4,    KC_5,   KC_LEAD,
     LT(ARRW,KC_TAB), KC_Q,         KC_W,          KC_E,    KC_R,    KC_T,   KC_SLASH,
     KC_LCTL,         KC_A,         KC_S,          KC_D,    KC_F,    KC_G,
     KC_LSFT,         KC_Z,         KC_X,          KC_C,    KC_V,    KC_B,   TD(TD_DOT),
-    TD(CT_LU),          KC_BSLS,      KC_TILD,       KC_LALT,   TD(TD_COL),
+    KC_NO,           KC_BSLS,      KC_TILD,       KC_LALT,   TD(TD_COL),
                                                                 KC_ESC, LSFT(KC_COMMA), 
                                                                                KC_HOME,
                                                      KC_SPACE, GUI_T(KC_ENTER), KC_END,
@@ -88,54 +100,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     LSFT(KC_F11), KC_Y,    KC_U,      KC_I,      KC_O,      KC_P,              KC_BSLS,
                   KC_H,    KC_J,      KC_K,      KC_L,      TD(CT_AFW),        KC_QUOT,
     OSL(SYMB),    KC_N,    KC_M,      KC_COMM,   KC_DOT,    KC_SLSH,           OSM(MOD_RCTL),
-                           KC_MINS,   OSL(SYMB), TG(FKEY),  TG(NUM),          TD(CT_DN),
+                           KC_MINS,   OSL(SYMB), TG(FKEY),  TG(NUM),           KC_NO,
     LSFT(KC_DOT), KC_LEAD,
     KC_DEL,
     TD(CT_LK),      KC_LSFT,  KC_BSPACE
 ),
-/* Keymap Dvorak
- *
- * ,--------------------------------------------------.           ,--------------------------------------------------.
- * |   =    |   1  |   2  |   3  |   4  |   5  |  F5  |           | Esc  |   6  |   7  |   8  |   9  |   0  |   -    |
- * |--------+------+------+------+------+-------------|           |------+------+------+------+------+------+--------|
- * | Tab/L5 |   '" |   ,  |   .  |   P  |   Y  |      |           | cbld |   F  |   G  |   C  |   R  |   L  |   \    |
- * |--------+------+------+------+------+------|   /  |           |      |------+------+------+------+------+--------|
- * | LShift |   A  |   O  |   E  |   U  |   I  |------|           |------|   D  |   H  |   T  |   N  |S / LM|   '"   |
- * |--------+------+------+------+------+------|   .  |           |   ;  |------+------+------+------+------+--------|
- * |  LCtrl |   :  |   Q  |   J  |   K  |   X  |   ,  |           |   :  |   B  |   M  |   W  |   V  |   Z  | RShift |
- * `--------+------+------+------+------+-------------'           `-------------+------+------+------+------+--------'
- *   | LD   |   \  |   ~  | Alt  |OS L2 |                                       | OS L1|  FnL |SymbL | NumPL|  LU  |
- *   `----------------------------------'                                       `----------------------------------'
- *                                      ,---------------.       ,---------------.
- *                                      |   Alt  |   <  |       |   >  |  Lead  |  
- *                               ,------|--------|------|       |------+--------+------.
- *                               |      |        | Home |       |   `  |        |      |
- *                               | Space| Enter  |------|       |------| Enter  |Bcksp |
- *                               |      | ~WIN   | End  |       | Win  | ~LSFT  |      |
- *                               `----------------------'       `----------------------'
- */
-
-[DVRK] = KEYMAP(          // left hand
-        KC_EQL,         KC_1,           KC_2,    KC_3,   KC_4,   KC_5,   KC_F5,
-        LT(ARRW,KC_TAB),KC_QUOT,        KC_COMM, KC_DOT, KC_P,   KC_Y,   KC_SLASH,
-        KC_LCTRL,       KC_A,           KC_O,    KC_E,   KC_U,   KC_I,
-        OSM(MOD_LSFT),  KC_SCLN,        KC_Q,    KC_J,   KC_K,   KC_X,   TD(TD_DOT),
-        TD(CT_LU),         KC_BSLS,        KC_TILD, KC_LALT,        OSL(SYMB),
-                                                 ALT_T(KC_ESC),             LSFT(KC_COMMA), 
-                                                                          KC_HOME,
-                                                 KC_SPACE, GUI_T(KC_ENTER), KC_END,
-        // right hand
-             KC_ESC,      KC_6,   KC_7,   KC_8,   KC_9,   KC_0,             KC_MINS,
-             KC_DELETE,   KC_F,   KC_G,   KC_C,   KC_R,   KC_L,             KC_BSLS,
-                          KC_D,   KC_H,   KC_T,   KC_N,   LT(MDIA, KC_S),   KC_QUOT,
-             TD(TD_COL),  KC_B,   KC_M,   KC_W,   KC_V,   KC_Z,             KC_RCTRL,
-                                  OSL(FKEY), TG(FKEY), TG(SYMB), TG(NUM),   TD(CT_DN),
-             LSFT(KC_DOT), KC_LEAD,
-             KC_GRV,
-             KC_RGUI, SFT_T(KC_ENTER), KC_BSPACE
-),
-
-
 
 
 /* Keymap : FKEY
@@ -380,7 +349,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
     KC_TAB,  KC_Q,    KC_W,    KC_E,    KC_R, KC_T, KC_TRNS,
     KC_LSFT, KC_A,    KC_S,    KC_D,    KC_F, KC_G,
     KC_LCTL, KC_Z,    KC_X,    KC_C,    KC_V, KC_B, KC_TRNS,
-    KC_TRNS,  KC_BSLS, KC_LALT, KC_F, KC_G,
+    KC_TRNS,  KC_BSLS, KC_LALT, OSL(FKEY), KC_LCTL,
                                    KC_TRNS,         KC_TRNS,
                                                     KC_TRNS,
                                    KC_SPC, KC_R,    KC_TRNS,
@@ -436,53 +405,6 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
        KC_TRNS, KC_TRNS,
        KC_TRNS,
        KC_TRNS, KC_TRNS, KC_TRNS
-),
-
-
-
-
-/* Keymap : reset layer
- *
- * ,-----------------------------------------------------.           ,-----------------------------------------------------.
- * |           |      |      |      |      |      |      |           |      |      |      |      |      |      |           |
- * |-----------+------+------+------+------+-------------|           |------+------+------+------+------+------+-----------|
- * |           |      |      |      |      |      |      |           |      |      | Home |  Up  |  End |      |           |
- * |-----------+------+------+------+------+------|      |           |      |------+------+------+------+------+-----------|
- * |           |      |      |      |      |      |------|           |------|      | Left | Down | Rght |      |           |
- * |-----------+------+------+------+------+------|      |           |      |------+------+------+------+------+-----------|
- * |           |      |      |      |      |      |      |           |      |      |      |      |      |      |           |
- * `-----------+------+------+------+------+-------------'           `-------------+------+------+------+------+-----------'
- *      |      |      |      |      |      |                                       |      |      |      |      |      |
- *      `----------------------------------'                                       `----------------------------------'
- *                                         ,-------------.           ,-------------.
- *                                         |      |      |           |      |      |
- *                                  ,------|------|------|           |------+------+------.
- *                                  |      |      |      |           |      |      |      |
- *                                  |      |      |------|           |------|      |      |
- *                                  |      |      | Flash|           |Flash |      |      |
- *                                  `--------------------'           `--------------------'
- */
-
-[REST] = KEYMAP(
-    // left hand
-    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
-    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
-    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
-    KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
-    KC_TRNS,  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
-                                                KC_TRNS,  KC_TRNS,
-                                                          KC_TRNS,
-                                          KC_TRNS, KC_TRNS, RESET,
-
-    // right hand
-    KC_TRNS,  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
-    KC_TRNS,  KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS,
-              KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_TRNS, KC_MPLY,
-    KC_TRNS,  KC_TRNS, KC_TRNS, KC_MPRV, KC_MNXT, KC_TRNS, KC_TRNS,
-                       KC_VOLU, KC_VOLD, KC_MUTE, KC_TRNS, KC_TRNS,
-    KC_TRNS, KC_TRNS,
-    KC_TRNS,
-    RESET, KC_TRNS, KC_TRNS
 ),
 
 };
@@ -559,42 +481,6 @@ void td_semicol_col(qk_tap_dance_state_t *state, void *user_data) {
    }
 };
 
-void td_lsft_aswm(qk_tap_dance_state_t *state, void *user_data) {
-  switch (state->count) {
-  case 1:
-    register_code (KC_LALT);
-    register_code (KC_LSFT);
-    register_code (KC_SPC);
-    unregister_code (KC_LALT);
-    unregister_code (KC_LSFT);
-    unregister_code (KC_SPC);
-    break;
-   case 2:
-    register_code (KC_LALT);
-    register_code (KC_LCTRL);
-    register_code (KC_ENTER);
-    unregister_code (KC_LALT);
-    unregister_code (KC_LCTRL);
-    unregister_code (KC_ENTER);
-    break;
-  case 3:
-    register_code (KC_LALT);
-    register_code (KC_LSFT);
-    register_code (KC_C);
-    unregister_code (KC_LALT);
-    unregister_code (KC_LSFT);
-    unregister_code (KC_C);
-    break;
-  case 4: 
-    register_code (KC_LALT);
-    register_code (KC_LSFT);
-    register_code (KC_D);
-    unregister_code (KC_LALT);
-    unregister_code (KC_LSFT);
-    unregister_code (KC_D);
-    break;
-   }
-};
 
 void td_win_lock(qk_tap_dance_state_t *state, void *user_data) {
   switch (state->count) {
@@ -673,33 +559,33 @@ static void ang_tap_dance_ta_reset (qk_tap_dance_state_t *state, void *user_data
   }
 }
 
-static void td_layer_up(qk_tap_dance_state_t *state, void *user_data) {
-  switch (state->count) {
-  case 1:
-    register_code (KC_LEFT);
-    unregister_code (KC_LEFT);
-    break;
-  case 2:
-    layer_off(next_layer);
-    next_layer = (((next_layer+1) % 10) + 10) % 10;
-    layer_on(next_layer);
-    break;
-   }
-};
+// void td_layer_up(qk_tap_dance_state_t *state, void *user_data) {
+//   switch (state->count) {
+//   case 1:
+//     register_code (KC_LEFT);
+//     unregister_code (KC_LEFT);
+//     break;
+//   case 2:
+//     layer_off(next_layer);
+//     next_layer = (((next_layer+1) % 9) + 9) % 9;
+//     layer_on(next_layer);
+//     break;
+//    }
+// };
 
-static void td_layer_down(qk_tap_dance_state_t *state, void *user_data) {
-  switch (state->count) {
-  case 1:
-    register_code (KC_RGHT);
-    unregister_code (KC_RGHT);
-    break;
-  case 2:
-    layer_off(next_layer);
-    next_layer = (((next_layer-1) % 10) + 10) % 10;
-    layer_on(next_layer);
-    break;
-   }
-};
+// void td_layer_down(qk_tap_dance_state_t *state, void *user_data) {
+//   switch (state->count) {
+//   case 1:
+//     register_code (KC_RGHT);
+//     unregister_code (KC_RGHT);
+//     break;
+//   case 2:
+//   	layer_off(next_layer);
+//     next_layer = (((next_layer-1) % 9) + 9) % 9;
+//     layer_on(next_layer);
+//     break;
+//    }
+// };
 
 
 //Tap Dance Definitions
@@ -713,11 +599,8 @@ qk_tap_dance_action_t tap_dance_actions[] = {
      .user_data = (void *)&((td_ta_state_t) { false, false })
             }
  ,[CT_LK] = ACTION_TAP_DANCE_FN(td_win_lock)
- ,[CT_AW] = ACTION_TAP_DANCE_FN(td_lsft_aswm)
  ,[CT_LC] = ACTION_TAP_DANCE_FN(td_launcher)
  ,[CT_AFW] = ACTION_TAP_DANCE_DUAL_ROLE(KC_SCLN, ARRW)
- ,[CT_LU] = ACTION_TAP_DANCE_FN(td_layer_up) 
- ,[CT_DN] = ACTION_TAP_DANCE_FN(td_layer_down) 
 };
 
 
@@ -740,23 +623,82 @@ const macro_t *action_get_macro(keyrecord_t *record, uint8_t id, uint8_t opt)
             }
             break;
         }
+
       }
     return MACRO_NONE;
 };
+
+// bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+//     if (record->event.pressed) {
+//         switch(keycode) {
+//             case MC_MTAP:
+//                   mousekey_on(KC_MS_BTN1);
+//                   mousekey_send();
+//                   mousekey_off(KC_MS_BTN1);
+//                   mousekey_send();
+//                   wait_ms(20);
+                  
+//                   mousekey_on(KC_MS_BTN1);
+//                   mousekey_send();
+//                   mousekey_off(KC_MS_BTN1);
+//                   mousekey_send();
+//                   wait_ms(20);
+                  
+//                   mousekey_on(KC_MS_BTN1);
+//                   mousekey_send();
+//                   mousekey_off(KC_MS_BTN1);
+//                   mousekey_send();
+//                   wait_ms(20);
+                  
+//                   mousekey_on(KC_MS_BTN1);
+//                   mousekey_send();
+//                   mousekey_off(KC_MS_BTN1);
+//                   mousekey_send();
+//                   wait_ms(20);
+
+//                   mousekey_on(KC_MS_BTN1);
+//                   mousekey_send();
+//                   mousekey_off(KC_MS_BTN1);
+//                   mousekey_send();
+                  
+//                 return false; break;
+//             case MC_FTAP:
+//                     register_code(KC_F);
+//                     unregister_code(KC_F);
+//                     wait_ms(20);
+//                     register_code(KC_F);
+//                     unregister_code(KC_F);
+//                     wait_ms(20);
+//                     register_code(KC_F);
+//                     unregister_code(KC_F);
+//                     wait_ms(20);
+//                     register_code(KC_F);
+//                     unregister_code(KC_F);
+//                     wait_ms(20);
+//                     register_code(KC_F);
+//                     unregister_code(KC_F);
+//                 return false; break;
+//         }
+//     }
+//     return true;
+// };
 
 
 // Runs just one time when the keyboard initializes.
 void matrix_init_user(void) {
   uint8_t dl;
-  next_layer = 0;
+  // next_layer = 0;
   // is_dvrk = 0; 
   if (!eeconfig_is_enabled())
     eeconfig_init();
   dl = eeconfig_read_default_layer ();
- // if (dl == (1UL << DVRK)) {
-    //is_dvrk = 1;
-  //}
-  next_layer = dl;
+ if (dl == (1UL << GAME)) {
+    is_game = 1;
+  }
+  else if (dl == (1UL << GAME2)) {
+    is_game2 = 1;
+  }
+  // next_layer = dl;
 };
 
 
@@ -764,7 +706,7 @@ LEADER_EXTERNS();
 // Runs constantly in the background, in a loop.
 void matrix_scan_user(void) {
 
- //   uint8_t layer = biton32(layer_state);
+    // uint8_t layer = biton32(layer_state);
 
     // ergodox_board_led_off();
     // ergodox_right_led_1_off();
@@ -787,90 +729,116 @@ void matrix_scan_user(void) {
     leading = false;
     leader_end();
 
-    // do a vim yank line
-    SEQ_ONE_KEY(KC_Y) {
-      register_code(KC_HOME);   
-      unregister_code(KC_HOME);
-      register_code(KC_RSFT);
-      register_code(KC_END);
-      unregister_code(KC_END);
-      unregister_code(KC_RSFT); 
-      register_code(KC_LCTL);
-      register_code(KC_C);
-      unregister_code(KC_C);
-      unregister_code(KC_LCTL);
-      register_code(KC_END);
-      unregister_code(KC_END);
-    }
-    // do a vim cut line
-    SEQ_ONE_KEY(KC_D) {
-      register_code(KC_HOME);   
-      unregister_code(KC_HOME);
-      register_code(KC_RSFT);
-      register_code(KC_END);
-      unregister_code(KC_END);
-      unregister_code(KC_RSFT); 
-      register_code(KC_LCTL);
-      register_code(KC_X);
-      unregister_code(KC_X);
-      unregister_code(KC_LCTL);
-      register_code(KC_END);
-      unregister_code(KC_END);
-    }
-    // do a vim paste line
-    SEQ_ONE_KEY(KC_P) {
-      register_code(KC_END);    
-      unregister_code(KC_END);
-      register_code(KC_ENT);
-      unregister_code(KC_ENT);
-      register_code(KC_LCTL);
-      register_code(KC_V);
-      unregister_code(KC_V); 
-      unregister_code(KC_LCTL);
-    }
+//     // do a vim yank line
+//     SEQ_ONE_KEY(KC_Y) {
+//       register_code(KC_HOME);		
+//       unregister_code(KC_HOME);
+//       register_code(KC_RSFT);
+//       register_code(KC_END);
+//       unregister_code(KC_END);
+//       unregister_code(KC_RSFT); 
+//       register_code(KC_LCTL);
+//       register_code(KC_C);
+//       unregister_code(KC_C);
+//       unregister_code(KC_LCTL);
+//       register_code(KC_END);
+//       unregister_code(KC_END);
+//     }
+//     // do a vim cut line
+//     SEQ_ONE_KEY(KC_D) {
+//       register_code(KC_HOME);		
+//       unregister_code(KC_HOME);
+//       register_code(KC_RSFT);
+//       register_code(KC_END);
+//       unregister_code(KC_END);
+//       unregister_code(KC_RSFT); 
+//       register_code(KC_LCTL);
+//       register_code(KC_X);
+//       unregister_code(KC_X);
+//       unregister_code(KC_LCTL);
+//       register_code(KC_END);
+//       unregister_code(KC_END);
+//     }
+//     // do a vim paste line
+//     SEQ_ONE_KEY(KC_P) {
+//       register_code(KC_END);		
+//       unregister_code(KC_END);
+//       register_code(KC_ENT);
+//       unregister_code(KC_ENT);
+//       register_code(KC_LCTL);
+//       register_code(KC_V);
+//       unregister_code(KC_V); 
+//       unregister_code(KC_LCTL);
+//     }
 
-        // ctrl-x
-    SEQ_ONE_KEY(KC_COMMA) {
-      register_code(KC_LCTL);
-      register_code(KC_X);
-      unregister_code(KC_X);
-      unregister_code(KC_LCTL);
-    }
-        // ctrl-c
-    SEQ_ONE_KEY(KC_N) {
-      register_code(KC_LCTL);
-      register_code(KC_C);
-      unregister_code(KC_C);
-      unregister_code(KC_LCTL);
-    }
-        // ctrl-v
-    SEQ_ONE_KEY(KC_DOT) {
-      register_code(KC_LCTL);
-      register_code(KC_V);
-      unregister_code(KC_V);
-      unregister_code(KC_LCTL);
-    }
+//         // ctrl-x
+//     SEQ_ONE_KEY(KC_COMMA) {
+//       register_code(KC_LCTL);
+//       register_code(KC_X);
+//       unregister_code(KC_X);
+//       unregister_code(KC_LCTL);
+//     }
+//         // ctrl-c
+//     SEQ_ONE_KEY(KC_N) {
+//       register_code(KC_LCTL);
+//       register_code(KC_C);
+//       unregister_code(KC_C);
+//       unregister_code(KC_LCTL);
+//     }
+//         // ctrl-v
+//     SEQ_ONE_KEY(KC_DOT) {
+//       register_code(KC_LCTL);
+//       register_code(KC_V);
+//       unregister_code(KC_V);
+//       unregister_code(KC_LCTL);
+//     }
     
-        SEQ_ONE_KEY (KC_A) {
-//      if (is_dvrk == 0) {
- //       default_layer_and (0);
- //       default_layer_or ((1UL << DVRK));
- //       eeconfig_update_default_layer ((1UL << DVRK));
-  //      is_dvrk = 1;
+  SEQ_ONE_KEY (KC_G) {
+     if (is_game == 0) {
+       default_layer_and (0);
+       default_layer_or ((1UL << GAME));
+       eeconfig_update_default_layer ((1UL << GAME));
+       is_game = 1;
+       
+       if(is_game2 == 1)
+        is_game2 = 0;
 
-    //  } else {
-//        is_dvrk = 0;
+     } else {
+       is_game = 0;
         default_layer_and (0);
         default_layer_or (1UL << BASE);
         eeconfig_update_default_layer ((1UL << BASE));
 
-      //}
+      }
+    }
+
+    SEQ_ONE_KEY (KC_F) {
+     if (is_game2 == 0) {
+       default_layer_and (0);
+       default_layer_or ((1UL << GAME2));
+       eeconfig_update_default_layer ((1UL << GAME2));
+       is_game2 = 1;
+
+       if(is_game == 1)
+        is_game = 0;
+
+
+     } else {
+       is_game2 = 0;
+        default_layer_and (0);
+        default_layer_or (1UL << BASE);
+        eeconfig_update_default_layer ((1UL << BASE));
+
+      }
     }
     
-    SEQ_TWO_KEYS(KC_C, KC_S) {
-    SEND_STRING("static_cast<>");
+    SEQ_TWO_KEYS(KC_R, KC_E) {
+        reset_keyboard ();
+      }
 
-}
+    SEQ_TWO_KEYS(KC_U, KC_I) {
+        reset_keyboard ();
+      }
 
    
   }

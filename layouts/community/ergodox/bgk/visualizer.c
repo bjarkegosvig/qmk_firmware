@@ -29,35 +29,27 @@ static void get_visualizer_layer_and_color(visualizer_state_t* state) {
         saturation = 255;
     }
     
-     if (state->status.layer & 0x200) {
+     if (state->status.layer & 0x100) {
         state->target_lcd_color = LCD_COLOR(255, saturation, 0xFF);
         state->layer_text = "FLASH";
     }
-    else if (state->status.layer & 0x100) {
-        state->target_lcd_color = LCD_COLOR(80, saturation, 0x85);
-        state->layer_text = "GAME 2";
-    }
     else if (state->status.layer & 0x80) {
-        state->target_lcd_color = LCD_COLOR(15, saturation, 0xFF);
-        state->layer_text = "Gaming";
-    }
-    else if (state->status.layer & 0x40) {
         state->target_lcd_color = LCD_COLOR(170, saturation, 0xFF);
         state->layer_text = "Arrow";
     }
-    else if (state->status.layer & 0x20) {
+    else if (state->status.layer & 0x40) {
         state->target_lcd_color = LCD_COLOR(113, saturation, 0xFF);
         state->layer_text = "KBD functions";
     }
-    else if (state->status.layer & 0x10) {
+    else if (state->status.layer & 0x20) {
         state->target_lcd_color = LCD_COLOR(39, saturation, 0xFF);
         state->layer_text = "Num Pad";
     }
-    else if (state->status.layer & 0x8) {
+    else if (state->status.layer & 0x10) {
         state->target_lcd_color = LCD_COLOR(213, saturation, 0xFF);
         state->layer_text = "Symbols";
     }
-    else if (state->status.layer & 0x4) {
+    else if (state->status.layer & 0x8) {
         state->target_lcd_color = LCD_COLOR(125, saturation, 0xFF);
         state->layer_text = "Function keys";
     }
@@ -66,16 +58,20 @@ static void get_visualizer_layer_and_color(visualizer_state_t* state) {
 //    state->layer_text = "Dvorak";
 //    }
     else {
- //       state->target_lcd_color = LCD_COLOR(84, saturation, 0xFF);
- //       state->layer_text = "Default";
- //       if (is_dvrk == 1)
- //       {
-  //          state->target_lcd_color = LCD_COLOR(181, saturation, 0xFF);
-  //          state->layer_text = "Dvorak";
-  //      }
-   //     else {
+       state->target_lcd_color = LCD_COLOR(84, saturation, 0xFF);
+       state->layer_text = "Default";
+       if (is_game == 1)
+       {
+           state->target_lcd_color = LCD_COLOR(181, saturation, 0xFF);
+           state->layer_text = "Game";
+       }
+       else if (is_game2 == 1) {
+        state->target_lcd_color = LCD_COLOR(125, saturation, 0xFF);
+        state->layer_text = "Game 2";
+    }
+       else {
             state->target_lcd_color = LCD_COLOR(84, saturation, 0xFF);
             state->layer_text = "Default";
-     //   }
+       }
     } 
 }

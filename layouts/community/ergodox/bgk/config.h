@@ -21,5 +21,8 @@
 #undef TAPPING_TOGGLE
 #define TAPPING_TOGGLE 2
 
-//uint8_t is_dvrk = 0;
+
+extern uint8_t is_game;
+extern uint8_t is_game2;
+
 #endif
