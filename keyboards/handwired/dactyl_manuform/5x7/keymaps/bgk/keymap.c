@@ -9,6 +9,7 @@
 #define _FN     1
 #define _NUMPAD 2
 #define _GAME 3
+#define _SYMB 4
 // Some basic macros
 #define TASK    LCTL(LSFT(KC_ESC))
 #define TAB_R   LCTL(KC_TAB)
@@ -43,20 +44,24 @@
 enum bgk_keycodes {
   KCAE = SAFE_RANGE,
   KCOE,
-  KCAA, 
+  KCAA,
 };
 
 
 
 enum tapdances{
   TD_RBP = 0,
-  TD_LBP
+  TD_LBP,
+  TD_CLN,
+  TD_RST
   // TD_MNUB,
 };
 // Tap Dance definitions
 qk_tap_dance_action_t tap_dance_actions[] = {
   [TD_RBP]  = ACTION_TAP_DANCE_DOUBLE(KC_RBRC,KC_RPRN),
-  [TD_LBP] = ACTION_TAP_DANCE_DOUBLE(KC_LBRC, KC_LPRN)
+  [TD_LBP] = ACTION_TAP_DANCE_DOUBLE(KC_LBRC, KC_LPRN),
+  [TD_CLN] = ACTION_TAP_DANCE_DOUBLE(KC_COLON, KC_SCOLON),
+  [TD_RST] = ACTION_TAP_DANCE_DOUBLE(KC_NO, RESET)
 };
 
 
@@ -79,30 +84,30 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  *   `---------------------------'                            									'----------------------------'
  *						    ,---------------.                                         ,---------------.
  '						    |  Space | Ent  |  ,---------------.   ,---------------.  |  Shft  |BckSP |
- *                          `--------|------'  |        |      |   |      |        |  `--------|------'
+ *                          `--------|------'  | LCTL   |Enter |   | LALT |  GUI   |  `--------|------'
  *                                             |--------|------|   |------+--------+
- *                                             |        |      |   |      |        |
- *                                             `---------------'   `---------------' 						                                            
+ *                                             | TT SB  |      |   |      | TT SB  |
+ *                                             `---------------'   `---------------'
  */
   // left hand
    KC_ESC,    		KC_1,    KC_2,    KC_3,   KC_4,   KC_5,   KC_NO,
    KC_TAB,    		KC_Q,    KC_W,    KC_E,   KC_R,   KC_T,   TD(TD_LBP),
-   KC_LCTL,   		KC_A,    KC_S,    KC_D,   KC_F,   KC_G,   TAB_NO,
+   KC_LCTL,   		KC_A,    KC_S,    KC_D,   KC_F,   KC_G,   TD(TD_CLN),
    OSM(MOD_LSFT),   KC_Z,    KC_X,    KC_C,   KC_V,   KC_B,
-   KC_CAPS,   		KC_LGUI, TAB_L,   TAB_R,
+   KC_NO,   		KC_LGUI, _______,  _______,
                                KC_SPC, KC_ENT,
-									KC_END, KC_HOME,
-									KC_PSCR, TASK,
+									KC_LCTL, KC_HOME,
+									TT(_SYMB), KC_END,
         // right hand
-                     KC_ESC,     KC_6,    KC_7,    KC_8,     KC_9,     KC_0,     KC_GRV,
-                     TD(TD_RBP), KC_Y,    KC_U,    KC_I,     KC_O,     KC_P,     KC_EQUAL,
-                 TG(_NUMPAD),    KC_H,    KC_J,    KC_K,     KC_L,     KC_SCLN,  KC_QUOTE,
-                                 KC_N,    KC_M,    KC_COMM,  KC_DOT,   KC_SLSH,  KC_MINUS,
+                     KC_ESC,       KC_6,    KC_7,    KC_8,     KC_9,     KC_0,     KC_GRV,
+                     TD(TD_RBP),   KC_Y,    KC_U,    KC_I,     KC_O,     KC_P,     KC_EQUAL,
+                     TT(_SYMB),    KC_H,    KC_J,    KC_K,     KC_L,     KC_SCLN,  KC_QUOTE,
+                                   KC_N,    KC_M,    KC_COMM,  KC_DOT,   KC_SLSH,  KC_MINUS,
                                        KC_LEFT, KC_UP,    KC_DOWN,  KC_RGHT,
 			KC_LSFT, KC_BSPC,
-        KC_PGUP, KC_PGDN,
-        KC_LCTL, KC_LALT),
-		
+        KC_LALT, KC_LGUI,
+        TT(_SYMB), TT(_SYMB)),
+
 [_GAME] = LAYOUT_5x7(
 
 /* KCmap 0: Basic layer
@@ -112,7 +117,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |--------+------+------+------+------+-------------|                    |------+------+------+------+------+------+--------|
  * |Tab/ARRW|   Q  |   W  |   E  |   R  |   T  |{/(/[ |                    |]/)/} |   Y  |   U  |   I  |   O  |   P  |   +=   |
  * |--------+------+------+------+------+------|------|                    |------|------+------+------+------+------+--------|
- * | LCTL   |   A  |   S  |   D  |   F  |   G  | :/;  |                    |      |   H  |   J  |   K  |   L  |; / LM|   '"   |
+ * | LCTL   |   A  |   S  |   D  |   F  |   G  | :/;  |                    | SB   |   H  |   J  |   K  |   L  |; / LM|   '"   |
  * |--------+------+------+------+------+------|------'                    '------|------+------+------+------+------+--------|
  * | Shift  |   Z  |   X  |   C  |   V  |   B  |                                  |   N  |   M  |   ,  |   .  |   /  |  _-    |
  * `--------+------+------+------+------+------'                                  `-------------+------+------+------+--------'
@@ -120,29 +125,29 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  *   `---------------------------'                            									'----------------------------'
  *						    ,---------------.                                         ,---------------.
  '						    |  Space | Ent  |  ,---------------.   ,---------------.  |  Shft  |BckSP |
- *                          `--------|------'  |        |      |   |      |        |  `--------|------'
+ *                          `--------|------'  |  CTRL  |      |   |      |        |  `--------|------'
  *                                             |--------|------|   |------+--------+
- *                                             |        |      |   |      |        |
- *                                             `---------------'   `---------------' 						                                            
+ *                                             |   $B   |      |   |      |        |
+ *                                             `---------------'   `---------------'
  */
   // left hand
    KC_ESC,    		KC_1,    KC_2,    KC_3,   KC_4,   KC_5,   KC_NO,
    KC_TAB,    		KC_Q,    KC_W,    KC_E,   KC_R,   KC_T,   TD(TD_LBP),
    KC_LCTL,   		KC_A,    KC_S,    KC_D,   KC_F,   KC_G,   TAB_RO,
    OSM(MOD_LSFT),   KC_Z,    KC_X,    KC_C,   KC_V,   KC_B,
-   KC_CAPS,   		KC_LGUI, TAB_L,   TAB_R,
+   _______,   		KC_LGUI,_______,   _______,
                                KC_SPC, KC_ENT,
-									KC_END, KC_HOME,
-									KC_PSCR, TASK,
+									KC_LCTL,     _______,
+									 TG(_SYMB),  _______,
         // right hand
                      KC_ESC,     KC_6,    KC_7,    KC_8,     KC_9,     KC_0,     KC_GRV,
                      TD(TD_RBP), KC_Y,    KC_U,    KC_I,     KC_O,     KC_P,     KC_EQUAL,
-                 TG(_NUMPAD),    KC_H,    KC_J,    KC_K,     KC_L,     KC_SCLN,  KC_QUOTE,
+                     TG(_SYMB),  KC_H,    KC_J,    KC_K,     KC_L,     KC_SCLN,  KC_QUOTE,
                                  KC_N,    KC_M,    KC_COMM,  KC_DOT,   KC_SLSH,  KC_MINUS,
                                        KC_LEFT, KC_UP,    KC_DOWN,  KC_RGHT,
 			KC_LSFT, KC_BSPC,
         KC_PGUP, KC_PGDN,
-        KC_LCTL, KC_LALT),
+        TG(_SYMB), KC_LALT),
 
 [_FN] = LAYOUT_5x7(
   // left hand
@@ -184,6 +189,46 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         _______, _______,
         _______, _______),
 
+/* KCmap 0: Symbol
+ *
+ * ,--------------------------------------------------.                    ,--------------------------------------------------.
+ * |        |      |      |      |      |      |      |                    |      |      |      |      |      |      |        |
+ * |--------+------+------+------+------+-------------|                    |------+------+------+------+------+------+--------|
+ * |        |   &  |   @  |   {  |   }  |   |  |      |                    |      |      | Home |  Up  | End  |      |        |
+ * |--------+------+------+------+------+------|------|                    |------|------+------+------+------+------+--------|
+ * |        |   #  |   $  |   (  |   )  |   *  |      |                    |      |      | Left | Down |Right |      |        |
+ * |--------+------+------+------+------+------|------'                    '------|------+------+------+------+------+--------|
+ * |        |   %  |   ^  |   [  |   ]  |   ~  |                                  |      |  <   |  >   |      |      |        |
+ * `--------+------+------+------+------+------'                                  `-------------+------+------+------+--------'
+ *   |      |      |      |      |                                                              |      |      |      |       |
+ *   `---------------------------'                            									'----------------------------'
+ *						    ,---------------.                                         ,---------------.
+ '						    |        |      |  ,---------------.   ,---------------.  |        |Delete|
+ *                          `--------|------'  |        |      |   |      |        |  `--------|------'
+ *                                             |--------|------|   |------+--------+
+ *                                             |        |      |   |      |        |
+ *                                             `---------------'   `---------------'
+ */
+ [_SYMB] = LAYOUT_5x7(
+  // left hand
+   _______,    		_______,    _______,    _______,   _______,   _______,   _______,
+   _______,    		KC_AMPR,    KC_AT,   KC_LCBR, KC_RCBR, KC_PIPE,   _______,
+   _______,   		KC_HASH,    KC_DLR,  KC_LPRN, KC_RPRN, KC_ASTR,   _______,
+   _______,         KC_PERC,   KC_CIRC, KC_LBRC, KC_RBRC, KC_TILD,
+   RESET,   		_______,   _______,   _______,
+                               _______, _______,
+									_______, _______,
+									_______, _______,
+        // right hand
+                     _______,    _______,       _______,    _______,     _______,  _______,    _______,
+                     _______,    _______,       KC_HOME,    KC_UP,       KC_END,   _______,    _______,
+                     _______,    _______,       KC_LEFT,    KC_DOWN,     KC_RGHT,  _______,    _______,
+                                 _______,       KC_LT,      KC_GT,       _______,  _______,    _______,
+                                       _______, _______,    _______,  RESET,
+			_______, KC_DEL,
+        _______, _______,
+        _______, _______
+		),
 };
 
 
