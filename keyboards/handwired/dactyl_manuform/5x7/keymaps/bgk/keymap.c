@@ -86,7 +86,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  '						    |  Space | Ent  |  ,---------------.   ,---------------.  |  Shft  |BckSP |
  *                          `--------|------'  | LCTL   |Enter |   | LALT |  GUI   |  `--------|------'
  *                                             |--------|------|   |------+--------+
- *                                             | TT SB  |      |   |      | TT SB  |
+ *                                             | TT SB  | TT FN|   |TT FN | TT SB  |
  *                                             `---------------'   `---------------'
  */
   // left hand
@@ -97,7 +97,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
    KC_NO,   		KC_LGUI, _______,  _______,
                                KC_SPC, KC_ENT,
 									KC_LCTL, KC_HOME,
-									TT(_SYMB), KC_END,
+									TT(_SYMB), TT(_FN),
         // right hand
                      KC_ESC,       KC_6,    KC_7,    KC_8,     KC_9,     KC_0,     KC_GRV,
                      TD(TD_RBP),   KC_Y,    KC_U,    KC_I,     KC_O,     KC_P,     KC_EQUAL,
@@ -106,7 +106,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                                        KC_LEFT, KC_UP,    KC_DOWN,  KC_RGHT,
 			KC_LSFT, KC_BSPC,
         KC_LALT, KC_LGUI,
-        TT(_SYMB), TT(_SYMB)),
+        TT(_FN), TT(_SYMB)),
 
 [_GAME] = LAYOUT_5x7(
 
@@ -162,10 +162,10 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         // right hand
                      KC_F7,     KC_F8,     KC_F9,     KC_F10,    KC_F11,    KC_F12,    _______,
                      _______,   _______,   _______,   _______,   _______,   _______,   _______,
-                     _______,   _______,   _______,   _______,   _______,   _______,   _______,
+                     _______,   _______,   KCAE,      KCOE,      KCAA,      _______,   _______,
                                 _______,   _______,   _______,   _______,   _______,   _______,
                                                       _______,   _______,   _______,   _______,
-        KC_DEL, _______,
+        _______, _______,
         _______, _______,
         _______, _______),
 
