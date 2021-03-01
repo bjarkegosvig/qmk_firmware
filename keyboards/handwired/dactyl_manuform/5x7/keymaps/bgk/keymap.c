@@ -53,7 +53,7 @@ enum tapdances{
   TD_RBP = 0,
   TD_LBP,
   TD_CLN,
-  TD_RST
+  TD_LCK
   // TD_MNUB,
 };
 // Tap Dance definitions
@@ -61,7 +61,7 @@ qk_tap_dance_action_t tap_dance_actions[] = {
   [TD_RBP]  = ACTION_TAP_DANCE_DOUBLE(KC_RBRC,KC_RPRN),
   [TD_LBP] = ACTION_TAP_DANCE_DOUBLE(KC_LBRC, KC_LPRN),
   [TD_CLN] = ACTION_TAP_DANCE_DOUBLE(KC_COLON, KC_SCOLON),
-  [TD_RST] = ACTION_TAP_DANCE_DOUBLE(KC_NO, RESET)
+  [TD_LCK] = ACTION_TAP_DANCE_DOUBLE(LGUI(KC_L),LCTL(LALT(KC_DEL)))
 };
 
 
@@ -92,11 +92,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   // left hand
    KC_ESC,    		KC_1,    KC_2,    KC_3,   KC_4,   KC_5,   KC_NO,
    KC_TAB,    		KC_Q,    KC_W,    KC_E,   KC_R,   KC_T,   TD(TD_LBP),
-   KC_LCTL,   		KC_A,    KC_S,    KC_D,   KC_F,   KC_G,   TD(TD_CLN),
+   OSM(MOD_LCTL),	KC_A,    KC_S,    KC_D,   KC_F,   KC_G,   TD(TD_CLN),
    OSM(MOD_LSFT),   KC_Z,    KC_X,    KC_C,   KC_V,   KC_B,
    KC_NO,   		LCTL(KC_X),  LCTL(KC_C),  LCTL(KC_V),
                                KC_SPC, KC_ENT,
-									KC_LCTL, KC_HOME,
+									OSM(MOD_LCTL), KC_HOME,
 									TT(_SYMB), TT(_FN),
         // right hand
                      KC_ESC,       KC_6,    KC_7,    KC_8,     KC_9,     KC_0,         KC_GRV,
@@ -104,8 +104,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
                      TT(_SYMB),    KC_H,    KC_J,    KC_K,     KC_L,     KC_SCLN,      KC_QUOTE,
                                    KC_N,    KC_M,    KC_COMM,  KC_DOT,   KC_SLSH,      KC_MINUS,
                                                      KC_NO,    KC_NO,    LCTL(KC_S),   LCTL(KC_Z),
-			KC_LSFT, KC_BSPC,
-        KC_LALT, KC_LGUI,
+			OSM(MOD_LSFT), KC_BSPC,
+        OSM(MOD_LALT), KC_LGUI,
         TT(_FN), TT(_SYMB)),
 
 [_GAME] = LAYOUT_5x7(
@@ -198,7 +198,7 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
  * |--------+------+------+------+------+------|------|                    |------|------+------+------+------+------+--------|
  * |        |   #  |   $  |   (  |   )  |   *  |      |                    |      |      | Left | Down |Right |      |        |
  * |--------+------+------+------+------+------|------'                    '------|------+------+------+------+------+--------|
- * |        |   %  |   ^  |   [  |   ]  |   ~  |                                  |      |  <   |  >   |      |      |        |
+ * |        |   %  |   ^  |   [  |   ]  |   ~  |                                  |      |  <   |  >   |      |  \|  |        |
  * `--------+------+------+------+------+------'                                  `-------------+------+------+------+--------'
  *   |      |      |      |      |                                                              |      |      |      |       |
  *   `---------------------------'                            									'----------------------------'
@@ -222,8 +222,8 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
         // right hand
                      _______,    _______,       _______,    _______,     _______,  _______,    _______,
                      _______,    _______,       KC_HOME,    KC_UP,       KC_END,   _______,    _______,
-                     _______,    _______,       KC_LEFT,    KC_DOWN,     KC_RGHT,  _______,    _______,
-                                 _______,       KC_LT,      KC_GT,       _______,  _______,    _______,
+                     _______,    _______,       KC_LEFT,    KC_DOWN,     KC_RGHT,  _______,    TD(TD_LCK),
+                                 _______,       KC_LT,      KC_GT,       _______,  KC_BSLS,    _______,
                                        _______, _______,    _______,  _______,
 			_______, KC_DEL,
         _______, _______,
