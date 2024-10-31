@@ -1,35 +1,47 @@
 # Quantum Mechanical Keyboard Firmware
 
-[![Current Version](https://img.shields.io/github/tag/qmk/qmk_firmware.svg)](https://github.com/qmk/qmk_firmware/tags)
-[![Discord](https://img.shields.io/discord/440868230475677696.svg)](https://discord.gg/qmk)
-[![Docs Status](https://img.shields.io/badge/docs-ready-orange.svg)](https://docs.qmk.fm)
-[![GitHub contributors](https://img.shields.io/github/contributors/qmk/qmk_firmware.svg)](https://github.com/qmk/qmk_firmware/pulse/monthly)
-[![GitHub forks](https://img.shields.io/github/forks/qmk/qmk_firmware.svg?style=social&label=Fork)](https://github.com/qmk/qmk_firmware/)
+This is the branch where my personal keymaps lives. Remember to keep the master branch clean, so it is easier to sync with upstream qmk
 
-This is a keyboard firmware based on the [tmk\_keyboard firmware](https://github.com/tmk/tmk_keyboard) with some useful features for Atmel AVR and ARM controllers, and more specifically, the [OLKB product line](https://olkb.com), the [ErgoDox EZ](https://ergodox-ez.com) keyboard, and the Clueboard product line.
+## Dactyl manuform
+Keymap can be found at `keyboards/handwired/dactyl_manuform/5x7/keymaps/bgk/`
 
-## Documentation
+Compile like this
+```
+qmk compile -kb handwired/dactyl_manuform/5x7 -km bgk
+```
 
-* [See the official documentation on docs.qmk.fm](https://docs.qmk.fm)
+Flash each half with this command
+```
+qmk flash -kb handwired/dactyl_manuform/5x7 -km bgk
+```
 
-The docs are powered by [VitePress](https://vitepress.dev/). They are also viewable offline; see [Previewing the Documentation](https://docs.qmk.fm/#/contributing?id=previewing-the-documentation) for more details.
+## Ergodox infinity
+Keymap can be found at `keyboards/input_club/ergodox_infinity/keymaps/bgk/`
 
-You can request changes by making a fork and opening a [pull request](https://github.com/qmk/qmk_firmware/pulls).
+Compile like this
+```
+qmk compile -kb input_club/ergodox_infinity -km bgk
+```
 
-## Supported Keyboards
+Flash each half with this command
+Untested command !!!!!!!!
+```
+qmk flash -kb input_club/ergodox_infinity -km bgk
+```
 
-* [Planck](/keyboards/planck/)
-* [Preonic](/keyboards/preonic/)
-* [ErgoDox EZ](/keyboards/ergodox_ez/)
-* [Clueboard](/keyboards/clueboard/)
-* [Cluepad](/keyboards/clueboard/17/)
-* [Atreus](/keyboards/atreus/)
 
-The project also includes community support for [lots of other keyboards](/keyboards/).
+# Preonic UNTESTED commands and does not compile
+Keymap can be found at `keyboards/preonic/keymaps/bgk/`
 
-## Maintainers
+Compile like this
+```
+qmk compile -kb preonic -km bgk
+```
 
-QMK is developed and maintained by Jack Humbert of OLKB with contributions from the community, and of course, [Hasu](https://github.com/tmk). The OLKB product firmwares are maintained by [Jack Humbert](https://github.com/jackhumbert), the Ergodox EZ by [ZSA Technology Labs](https://github.com/zsa), the Clueboard by [Zach White](https://github.com/skullydazed), and the Atreus by [Phil Hagelberg](https://github.com/technomancy).
+Flash each half with this command
+```
+qmk flash -kb preonic -km bgk
+```
 
 ## Official Website
 
