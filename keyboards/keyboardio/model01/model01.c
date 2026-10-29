@@ -23,3 +23,13 @@ void matrix_init_kb(void) {
   set_all_leds_to(0, 0, 0);
   matrix_init_user();
 }
+
+void housekeeping_task_kb(void) {
+  model01_leds_task();
+}
+
+/* Called repeatedly while the host is suspended, when housekeeping doesn't run. */
+void suspend_power_down_kb(void) {
+  model01_leds_task();
+  suspend_power_down_user();
+}

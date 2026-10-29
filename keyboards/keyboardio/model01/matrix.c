@@ -82,7 +82,7 @@ static int scan_hand(int hand) {
 
   /* A reconnected half comes back with its LEDs reset. */
   if (hand_unreachable[hand] && !unreachable)
-    model01_leds_invalidate();
+    model01_leds_resend(hand);
   hand_unreachable[hand] = unreachable;
 
   return ret;
