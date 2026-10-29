@@ -34,4 +34,7 @@ functions supported by the hardware are not implemented. The high current power
 switch is also not implemented, so if you try and turn all the LEDs on at full
 brightness, something may conk out.
 
+The scanners' keyscan interval (and therefore their built-in debounce) is left
+at the scanner firmware default.
+
 Hotplugging the two halves works but is not extensively tested.
