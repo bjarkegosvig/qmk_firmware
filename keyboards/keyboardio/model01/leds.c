@@ -26,10 +26,12 @@
 #define I2C_TIMEOUT     10
 #define HAND_RETRY_MS   250
 
+#define GAMMA(c)        pgm_read_byte(&CIE1931_CURVE[(c)])
+
 void set_all_leds_to(uint8_t r, uint8_t g, uint8_t b) {
   uint8_t buf[] = {
     TWI_CMD_LED_SET_ALL_TO,
-    b, g, r
+    GAMMA(b), GAMMA(g), GAMMA(r)
   };
   i2c_transmit(I2C_ADDR(LEFT), buf, sizeof(buf), I2C_TIMEOUT);
   i2c_transmit(I2C_ADDR(RIGHT), buf, sizeof(buf), I2C_TIMEOUT);
@@ -40,7 +42,7 @@ void set_led_to(int led, uint8_t r, uint8_t g, uint8_t b) {
   uint8_t buf[] = {
     TWI_CMD_LED_SET_ONE_TO,
     led & 0x1f,
-    b, g, r
+    GAMMA(b), GAMMA(g), GAMMA(r)
   };
   int hand = (led >= 32) ? RIGHT : LEFT;
   i2c_transmit(I2C_ADDR(hand), buf, sizeof(buf), I2C_TIMEOUT);
@@ -114,7 +116,7 @@ static void flush(void) {
       const uint8_t *bank_data = (const uint8_t *)&led_state[hand * LEDS_PER_HAND + bank * LEDS_PER_BANK];
       command[0] = TWI_CMD_LED_BASE + bank;
       for (int i=0; i<BANK_BYTES; i++)
-        command[1 + i] = bank_data[i];
+        command[1 + i] = GAMMA(bank_data[i]);
 
       if (i2c_transmit(I2C_ADDR(hand), command, sizeof(command), I2C_TIMEOUT) != I2C_STATUS_SUCCESS) {
         /* Back off so a disconnected half doesn't stall every frame. */
