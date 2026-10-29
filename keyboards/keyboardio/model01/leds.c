@@ -26,7 +26,8 @@
 #define I2C_TIMEOUT     10
 #define HAND_RETRY_MS   250
 
-#define GAMMA(c)        pgm_read_byte(&CIE1931_CURVE[(c)])
+/* Scale every channel to the brightness cap, then apply gamma correction. */
+#define GAMMA(c)        pgm_read_byte(&CIE1931_CURVE[(uint16_t)(c) * MODEL01_LED_MAX_VALUE / 255])
 
 void set_all_leds_to(uint8_t r, uint8_t g, uint8_t b) {
   uint8_t buf[] = {

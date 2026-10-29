@@ -32,8 +32,9 @@ It doesn't do cursor warping - QMK does not support absolute mouse positioning.
 LED support uses gamma correction (CIE 1931 curve) and only resends LED data
 when it changes. LED banks are sent alternating between halves, as in
 Kaleidoscope. LEDs are turned off while the host is suspended. The high
-current power path is enabled, so if you try and turn all the LEDs on at full
-brightness, something may conk out.
+current power path is enabled. All LED channels are capped at
+`MODEL01_LED_MAX_VALUE` (default 160, see `config.h`) to limit current draw;
+raising it towards 255 may draw more than the host can supply.
 
 The scanners' keyscan interval (and therefore their built-in debounce) is left
 at the scanner firmware default.
