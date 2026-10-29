@@ -29,12 +29,13 @@ This implements the standard keymap, including mousekeys.
 
 It doesn't do cursor warping - QMK does not support absolute mouse positioning.
 
-LED support is limited. Gamma compensation is not implemented. LED banks are
-sent alternating between halves, as in Kaleidoscope. The high current power
-path is enabled, so if you try and turn all the LEDs on at full brightness,
-something may conk out.
+LED support is limited. Gamma compensation is not implemented. LED data is
+only resent when it changes, and LED banks are sent alternating between halves,
+as in Kaleidoscope. The high current power path is enabled, so if you try and
+turn all the LEDs on at full brightness, something may conk out.
 
 The scanners' keyscan interval (and therefore their built-in debounce) is left
 at the scanner firmware default.
 
-Hotplugging the two halves works but is not extensively tested.
+Hotplugging the two halves works but is not extensively tested. A disconnected
+half is retried periodically, and its LEDs are refreshed once it reconnects.

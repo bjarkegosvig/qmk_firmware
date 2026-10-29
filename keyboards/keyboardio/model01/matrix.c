@@ -74,10 +74,24 @@ void matrix_init(void) {
   matrix_init_kb();
 }
 
+static bool hand_unreachable[2];
+
+static int scan_hand(int hand) {
+  int ret = i2c_read_hand(hand);
+  bool unreachable = (ret == 1);
+
+  /* A reconnected half comes back with its LEDs reset. */
+  if (hand_unreachable[hand] && !unreachable)
+    model01_leds_invalidate();
+  hand_unreachable[hand] = unreachable;
+
+  return ret;
+}
+
 uint8_t matrix_scan(void) {
   uint8_t ret = 0;
-  ret |= i2c_read_hand(LEFT);
-  ret |= i2c_read_hand(RIGHT);
+  ret |= scan_hand(LEFT);
+  ret |= scan_hand(RIGHT);
   matrix_scan_kb();
   return ret;
 }

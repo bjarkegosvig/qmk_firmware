@@ -21,7 +21,10 @@
 #include <string.h>
 #include "model01.h"
 
-#define I2C_TIMEOUT     1000
+/* Keep this short: a missing half NACKs every transfer, and i2c_start()
+ * keeps retrying until the timeout expires. */
+#define I2C_TIMEOUT     10
+#define HAND_RETRY_MS   250
 
 void set_all_leds_to(uint8_t r, uint8_t g, uint8_t b) {
   uint8_t buf[] = {
@@ -46,16 +49,33 @@ void set_led_to(int led, uint8_t r, uint8_t g, uint8_t b) {
 
 #ifdef RGB_MATRIX_ENABLE
 
+#define LEDS_PER_HAND   32
+#define LED_BANKS       4
+#define LEDS_PER_BANK   8
+#define BANK_BYTES      (LEDS_PER_BANK * 3)
+
 static struct {
   uint8_t b;
   uint8_t g;
   uint8_t r;
 } __attribute__((packed)) led_state[64];
 
+static bool     leds_dirty = true;
+static bool     hand_offline[2];
+static uint16_t hand_retry_timer[2];
+
+void model01_leds_invalidate(void) {
+  leds_dirty = true;
+}
+
 static void set_color(int index, uint8_t r, uint8_t g, uint8_t b) {
+  if (led_state[index].r == r && led_state[index].g == g && led_state[index].b == b)
+    return;
+
   led_state[index].r = r;
   led_state[index].g = g;
   led_state[index].b = b;
+  leds_dirty = true;
 }
 
 static void set_color_all(uint8_t r, uint8_t g, uint8_t b) {
@@ -73,19 +93,43 @@ static void init(void) {
 }
 
 static void flush(void) {
-  uint8_t command[1 + 8*3];
+  if (!leds_dirty)
+    return;
+
+  bool send[2];
+  bool complete = true;
+  for (int hand=0; hand<2; hand++)
+    send[hand] = !hand_offline[hand] || timer_elapsed(hand_retry_timer[hand]) >= HAND_RETRY_MS;
 
   /* Alternate between the halves, as Kaleidoscope does, so each scanner has
    * time to latch a bank before it receives the next one. */
-  for (int bank=0; bank<4; bank++) {
+  uint8_t command[1 + BANK_BYTES];
+  for (int bank=0; bank<LED_BANKS; bank++) {
     for (int hand=0; hand<2; hand++) {
-      const uint8_t *bank_data = (const uint8_t *)&led_state[hand * 32 + bank * 8];
+      if (!send[hand]) {
+        complete = false;
+        continue;
+      }
+
+      const uint8_t *bank_data = (const uint8_t *)&led_state[hand * LEDS_PER_HAND + bank * LEDS_PER_BANK];
       command[0] = TWI_CMD_LED_BASE + bank;
-      memcpy(&command[1], bank_data, 8*3);
-      i2c_transmit(I2C_ADDR(hand), command, sizeof(command), I2C_TIMEOUT);
+      for (int i=0; i<BANK_BYTES; i++)
+        command[1 + i] = bank_data[i];
+
+      if (i2c_transmit(I2C_ADDR(hand), command, sizeof(command), I2C_TIMEOUT) != I2C_STATUS_SUCCESS) {
+        /* Back off so a disconnected half doesn't stall every frame. */
+        send[hand] = false;
+        hand_offline[hand] = true;
+        hand_retry_timer[hand] = timer_read();
+        complete = false;
+        continue;
+      }
+      hand_offline[hand] = false;
       _delay_us(100);
     }
   }
+
+  leds_dirty = !complete;
 }
 
 const rgb_matrix_driver_t rgb_matrix_driver = {
@@ -94,6 +138,10 @@ const rgb_matrix_driver_t rgb_matrix_driver = {
   .set_color = set_color,
   .set_color_all = set_color_all
 };
+
+#else
+
+void model01_leds_invalidate(void) {}
 
 #endif
 
