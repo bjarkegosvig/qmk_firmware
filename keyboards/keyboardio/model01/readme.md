@@ -31,8 +31,9 @@ It doesn't do cursor warping - QMK does not support absolute mouse positioning.
 
 LED support uses gamma correction (CIE 1931 curve) and only resends LED data
 when it changes. LED banks are sent alternating between halves, as in
-Kaleidoscope. The high current power path is enabled, so if you try and turn
-all the LEDs on at full brightness, something may conk out.
+Kaleidoscope. LEDs are turned off while the host is suspended. The high
+current power path is enabled, so if you try and turn all the LEDs on at full
+brightness, something may conk out.
 
 The scanners' keyscan interval (and therefore their built-in debounce) is left
 at the scanner firmware default.
