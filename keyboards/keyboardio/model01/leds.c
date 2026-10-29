@@ -73,18 +73,17 @@ static void init(void) {
 }
 
 static void flush(void) {
-  uint8_t *bank_data = (uint8_t*)&led_state[0];
   uint8_t command[1 + 8*3];
-  for (int hand=0; hand<2; hand++) {
-    int addr = I2C_ADDR(hand);
 
-    for (int bank=0; bank<4; bank++) {
+  /* Alternate between the halves, as Kaleidoscope does, so each scanner has
+   * time to latch a bank before it receives the next one. */
+  for (int bank=0; bank<4; bank++) {
+    for (int hand=0; hand<2; hand++) {
+      const uint8_t *bank_data = (const uint8_t *)&led_state[hand * 32 + bank * 8];
       command[0] = TWI_CMD_LED_BASE + bank;
       memcpy(&command[1], bank_data, 8*3);
-      i2c_transmit(addr, command, sizeof(command), I2C_TIMEOUT);
+      i2c_transmit(I2C_ADDR(hand), command, sizeof(command), I2C_TIMEOUT);
       _delay_us(100);
-
-      bank_data += 8*3;
     }
   }
 }
