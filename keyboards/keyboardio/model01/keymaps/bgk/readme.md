@@ -28,8 +28,14 @@ the Danish letters æ, ø and å (right hand `J`/`K`/`L` positions).
 * Held modifiers and pending one-shots are highlighted, and Caps Lock /
   Num Lock light the Tab / Esc keys.
 
-Not ported: the Kaleidoscope colormap (it lived in EEPROM, not in the sketch)
-and the unused macros/tap dances.
+* The Kaleidoscope colormap (`tools/colormap/colormap.txt` with the
+  `bgk` palette) is drawn from `rgb_matrix_indicators_advanced_user`: each
+  layer has its own per-key colours and the map of the highest active layer
+  is shown, with the mod and lock highlights on top. RGB Matrix is forced on
+  at boot and the keyboard's animations are compiled out. Palette colours
+  are used as-is, subject to the keyboard's brightness cap.
+
+Not ported: the unused macros/tap dances.
 
 ## Password macros
 

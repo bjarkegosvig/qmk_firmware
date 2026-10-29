@@ -178,6 +178,126 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 // clang-format on
 
+/* Port of the Kaleidoscope colormap (tools/colormap/colormap.txt with the bgk
+ * palette): one palette index per LED, per layer. */
+// clang-format off
+/* Palette and colormaps from Model01-Firmware tools/colormap (bgk palette). */
+static const rgb_t colormap_palette[] PROGMEM = {
+    [ 0] = {.r =   0, .g =   0, .b =   0}, // Black
+    [ 1] = {.r = 128, .g = 150, .b = 255}, // Blue
+    [ 2] = {.r = 190, .g = 255, .b =  60}, // Green
+    [ 3] = {.r = 100, .g = 245, .b = 200}, // Cyan
+    [ 4] = {.r = 255, .g =  70, .b =  70}, // Red
+    [ 5] = {.r = 230, .g = 128, .b = 255}, // Magenta
+    [ 6] = {.r = 255, .g = 170, .b = 200}, // Pink
+    [ 7] = {.r = 243, .g = 255, .b = 132}, // Yellow
+    [ 8] = {.r = 255, .g = 216, .b = 128}, // Peach
+    [ 9] = {.r = 255, .g = 255, .b = 255}, // white
+    [10] = {.r =  30, .g = 187, .b = 215}, // bluish
+    [11] = {.r =  30, .g = 215, .b = 151}, // greensih
+    [12] = {.r = 255, .g =   0, .b = 128}, // pink
+};
+
+/* One palette index per LED, in LED index order (same as Kaleidoscope). */
+static const uint8_t PROGMEM colormaps[][RGB_MATRIX_LED_COUNT] = {
+    [QWERTY] = {
+         0,  0,  0,  1,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+    },
+    [COLEMAK] = {
+         0,  0,  0,  2,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+         8,  8,  5,  0,  0,  0,  0,  0,
+    },
+    [GAME] = {
+         0,  0,  0,  3,  0,  0,  8,  0,
+         0,  8,  8,  0,  0,  0,  8,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+         5,  0,  0,  0,  0,  0,  0,  0,
+
+         0,  0,  0,  0,  0,  8,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+    },
+    [GAMEFCN] = {
+         8,  8, 11,  5,  1,  5,  5,  5,
+         5,  5,  5,  1,  1,  5,  5,  5,
+         0,  5,  0,  1,  1,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  1,  1,  0,  0,  0,
+         0,  0,  0,  1,  1,  0,  0,  0,
+         0,  0,  0,  1,  0,  0,  0,  0,
+    },
+    [FUNCTION] = {
+         0,  0,  5,  0,  7,  5,  5,  5,
+         3,  3,  3,  7,  7,  5,  5,  5,
+         3,  3,  3,  7,  7,  5,  5,  5,
+        10,  9,  0,  0,  0,  0,  0,  0,
+
+         0,  0,  0,  4,  0,  0,  9, 10,
+         2,  2,  2,  7,  7,  6,  1,  2,
+         2,  1,  1,  7,  7,  6,  1,  2,
+         5,  0,  6,  7,  7,  5, 12,  5,
+    },
+    [ARROW] = {
+         0,  0,  2,  0,  0,  2,  8,  0,
+         0,  8,  1,  0,  0,  1,  8,  5,
+         5,  8, 10,  0,  0,  3,  0,  0,
+         2,  3,  3,  0,  0,  0,  0,  0,
+
+         0,  0,  0,  4,  0,  0,  0,  0,
+         0, 11,  0,  0,  0,  6,  1,  0,
+         0,  1,  1,  0,  0,  6,  1,  0,
+         0,  0,  0,  0, 12, 12,  0,  0,
+    },
+    [LAYSEL] = {
+         0,  0,  0,  0,  0,  1,  0,  0,
+         0,  0,  2,  0,  0,  3,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  1,  0,
+         0,  1,  0,  0,  0,  0,  1,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+    },
+    [NUMPAD] = {
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+         0,  0,  0,  0,  0,  0,  0,  0,
+
+         0,  0,  0,  0,  0,  7,  0,  0,
+         2, 10,  2,  0,  0, 10, 10, 10,
+        10, 10, 10,  0,  0, 10, 10, 10,
+         2,  2,  2,  2, 12,  2,  2, 12,
+    },
+};
+// clang-format on
+
+void keyboard_post_init_user(void) {
+    /* The colormap is drawn as an indicator over the (otherwise unused)
+     * base effect, so RGB Matrix must be on whatever EEPROM holds. */
+    rgb_matrix_enable_noeeprom();
+    rgb_matrix_mode_noeeprom(RGB_MATRIX_SOLID_COLOR);
+}
+
 static void set_base_layer(uint8_t layer) {
     layer_clear();
     default_layer_set((layer_state_t)1 << layer);
@@ -269,16 +389,27 @@ static uint8_t osm_to_mod_mask(uint16_t keycode) {
     return (mods & 0x10) ? (mods & 0xF) << 4 : mods;
 }
 
-/* Approximates Kaleidoscope's ActiveModColor and the caps/num lock
- * highlights from the Kaleidoscope sketch. */
-bool rgb_matrix_indicators_user(void) {
+/* Draws the colormap of the highest active layer (like Kaleidoscope's
+ * Colormap effect, palette colours as-is), then approximates Kaleidoscope's
+ * ActiveModColor and the caps/num lock highlights from the sketch. */
+bool rgb_matrix_indicators_advanced_user(uint8_t led_min, uint8_t led_max) {
+    uint8_t layer = get_highest_layer(layer_state | default_layer_state);
+    if (layer >= ARRAY_SIZE(colormaps)) {
+        layer = 0;
+    }
+    for (uint8_t i = led_min; i < led_max; i++) {
+        rgb_t color;
+        memcpy_P(&color, &colormap_palette[pgm_read_byte(&colormaps[layer][i])], sizeof(color));
+        rgb_matrix_set_color(i, color.r, color.g, color.b);
+    }
+
     const uint8_t mods    = get_mods();
     const uint8_t os_mods = get_oneshot_mods();
 
     for (uint8_t row = 0; row < MATRIX_ROWS; row++) {
         for (uint8_t col = 0; col < MATRIX_COLS; col++) {
             const uint8_t led = g_led_config.matrix_co[row][col];
-            if (led == NO_LED) {
+            if (led < led_min || led >= led_max) {
                 continue;
             }
 
@@ -295,10 +426,10 @@ bool rgb_matrix_indicators_user(void) {
 
     const led_t host_leds = host_keyboard_led_state();
     if (host_leds.caps_lock) {
-        rgb_matrix_set_color(g_led_config.matrix_co[1][7], 255, 0, 128); // Tab
+        RGB_MATRIX_INDICATOR_SET_COLOR(g_led_config.matrix_co[1][7], 255, 0, 128); // Tab
     }
     if (host_leds.num_lock) {
-        rgb_matrix_set_color(g_led_config.matrix_co[0][7], 255, 0, 128); // Esc
+        RGB_MATRIX_INDICATOR_SET_COLOR(g_led_config.matrix_co[0][7], 255, 0, 128); // Esc
     }
     return false;
 }
