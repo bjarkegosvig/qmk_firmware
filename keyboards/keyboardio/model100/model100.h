@@ -16,6 +16,7 @@
 #pragma once
 
 #include "quantum.h"
+#include "leds.h"
 
 #include "wire-protocol-constants.h"
 #define I2C_ADDR_LEFT   (0x58 << 1)
@@ -30,6 +31,5 @@
  * the bus. addr8 is the pre-shifted 8-bit address (I2C_ADDR macro). */
 bool i2c_poll_write(uint8_t addr8, const uint8_t *src, int n);
 
-#include "leds.h"
 
 /* vim: set ts=2 sw=2 et: */

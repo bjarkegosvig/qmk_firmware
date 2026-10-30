@@ -1,5 +1,4 @@
 CUSTOM_MATRIX = lite
-I2C_DRIVER_REQUIRED = yes
 CIE1931_CURVE = yes
 SRC += leds.c \
 	   matrix.c
