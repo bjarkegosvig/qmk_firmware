@@ -19,3 +19,6 @@
 
 void set_all_leds_to(uint8_t r, uint8_t g, uint8_t b);
 void set_led_to(int led, uint8_t r, uint8_t g, uint8_t b);
+
+/* Resend all of a hand's LEDs on the next flush, e.g. after it reconnects. */
+void model100_leds_resend(int hand);

@@ -94,7 +94,18 @@ This implements the standard keymap, including mousekeys.
 
 It doesn't do cursor warping - QMK does not support absolute mouse positioning.
 
-RGB matrix is supported (per-key, both hands). LED colour data is sent to the
-scanners bank-by-bank, interleaved between the two hands to avoid overrunning
-the ATtiny controllers. Gamma compensation and the hardware's high-speed batch
-LED update functions are not implemented.
+RGB matrix is supported (per-key, both hands). As in Kaleidoscope:
+
+* LED colour data is sent to the scanners bank-by-bank, interleaved between the
+  two hands to avoid overrunning the ATtiny controllers, and only banks that
+  changed are sent. The scanner bus runs at 400 kHz.
+* Every colour channel is gamma-corrected on output (QMK's CIE 1931 curve), so
+  RGB Matrix's own CIE correction of the HSV value is turned off.
+* The LEDs turn off while the host is suspended.
+
+The scanners' keyscan interval, and with it their built-in debounce, is left at
+the scanner firmware default. NKRO is enabled and on by default.
+
+A disconnected half fails fast (its I2C address is not acknowledged) instead of
+stalling the scan; its keys are released, and its LEDs are resent when it comes
+back. The hardware's high-speed batch LED update functions are not implemented.

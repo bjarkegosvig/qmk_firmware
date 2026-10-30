@@ -43,6 +43,9 @@
 #ifndef I2C_SR1_TXE
 #define I2C_SR1_TXE     (1U << 7)
 #endif
+#ifndef I2C_SR1_AF
+#define I2C_SR1_AF      (1U << 10)
+#endif
 
 /* The scanners clock-stretch (hold SCL low) while they service a request, so
  * the waits must tolerate that without being so long that an unresponsive hand
@@ -63,16 +66,28 @@ static void i2c_poll_setup(void) {
   uint32_t pclk1_mhz = STM32_PCLK1 / 1000000U;
   I2CD1.i2c->CR1   = 0;                          /* disable while configuring */
   I2CD1.i2c->CR2   = pclk1_mhz;                  /* FREQ = PCLK1 in MHz */
-  /* Standard mode 100 kHz: CCR = PCLK1 / (2 * 100k); TRISE = PCLK1(MHz) + 1. */
-  I2CD1.i2c->CCR   = STM32_PCLK1 / (2U * 100000U);
-  I2CD1.i2c->TRISE = pclk1_mhz + 1U;
+  /* Fast mode 400 kHz (duty 2:1), as Kaleidoscope uses: CCR = PCLK1 / (3 * 400k);
+   * TRISE = 300 ns max rise time in PCLK1 cycles, + 1. */
+  I2CD1.i2c->CCR   = I2C_CCR_FS | (STM32_PCLK1 / (3U * 400000U));
+  I2CD1.i2c->TRISE = (pclk1_mhz * 300U) / 1000U + 1U;
   I2CD1.i2c->CR1   = I2C_CR1_PE;                 /* enable */
 }
 
-/* Wait until (SR1 & mask) == mask, or bail. Returns false on timeout. */
+/* Set when the last transaction was NACKed, i.e. the scanner is not there. */
+static bool i2c_nacked;
+
+/* Wait until (SR1 & mask) == mask, or bail. Returns false on timeout or NACK;
+ * a NACK (e.g. a disconnected half) fails at once instead of spinning out the
+ * whole timeout. */
 static bool i2c_wait_sr1(uint32_t mask) {
   for (uint32_t i = 0; i < POLL_TIMEOUT_LOOPS; i++) {
-    if ((I2CD1.i2c->SR1 & mask) == mask) return true;
+    uint32_t sr1 = I2CD1.i2c->SR1;
+    if (sr1 & I2C_SR1_AF) {
+      I2CD1.i2c->SR1 = ~I2C_SR1_AF;   /* rc_w0: clear AF only */
+      i2c_nacked = true;
+      return false;
+    }
+    if ((sr1 & mask) == mask) return true;
   }
   return false;
 }
@@ -94,6 +109,7 @@ static int i2c_poll_read(uint8_t addr8, uint8_t *dst, int n) {
    * don't hold its driver), so re-assert it each transaction. */
   rccEnableI2C1(true);
   I2CD1.i2c->CR1 |= I2C_CR1_PE | I2C_CR1_ACK;
+  i2c_nacked = false;
 
   for (uint32_t i = 0; (I2CD1.i2c->SR2 & I2C_SR2_BUSY); i++) {
     if (i >= POLL_TIMEOUT_LOOPS) return 0;
@@ -131,6 +147,7 @@ bool i2c_poll_write(uint8_t addr8, const uint8_t *src, int n) {
 
   rccEnableI2C1(true);
   I2CD1.i2c->CR1 |= I2C_CR1_PE;
+  i2c_nacked = false;
 
   for (uint32_t i = 0; (I2CD1.i2c->SR2 & I2C_SR2_BUSY); i++) {
     if (i >= POLL_TIMEOUT_LOOPS) return false;
@@ -140,11 +157,11 @@ bool i2c_poll_write(uint8_t addr8, const uint8_t *src, int n) {
   if (!i2c_wait_sr1(I2C_SR1_SB)) return false;
 
   I2CD1.i2c->DR = (uint32_t)(addr7 << 1);          /* write */
-  if (!i2c_wait_sr1(I2C_SR1_ADDR)) { I2CD1.i2c->CR1 |= I2C_CR1_STOP; return false; }
+  if (!i2c_wait_sr1(I2C_SR1_ADDR)) { I2CD1.i2c->CR1 |= I2C_CR1_STOP; i2c_wait_stop(); return false; }
   (void)I2CD1.i2c->SR2;
 
   for (int i = 0; i < n; i++) {
-    if (!i2c_wait_sr1(I2C_SR1_TXE)) { I2CD1.i2c->CR1 |= I2C_CR1_STOP; return false; }
+    if (!i2c_wait_sr1(I2C_SR1_TXE)) { I2CD1.i2c->CR1 |= I2C_CR1_STOP; i2c_wait_stop(); return false; }
     I2CD1.i2c->DR = src[i];
     if (!i2c_wait_sr1(I2C_SR1_BTF)) { I2CD1.i2c->CR1 |= I2C_CR1_STOP; i2c_wait_stop(); return false; }
   }
@@ -153,11 +170,29 @@ bool i2c_poll_write(uint8_t addr8, const uint8_t *src, int n) {
   return true;
 }
 
+static bool hand_present[2];
+
 static void i2c_read_hand(int hand, matrix_row_t current_matrix[]) {
   uint8_t buf[5] = {0};
-  if (i2c_poll_read(I2C_ADDR(hand), buf, sizeof(buf)) != (int)sizeof(buf)) {
+  int start_row = hand ? ROWS_PER_HAND : 0;
+  int got = i2c_poll_read(I2C_ADDR(hand), buf, sizeof(buf));
+
+  if (i2c_nacked) {
+    /* The half is gone: release its keys rather than leave them stuck. */
+    memset(&current_matrix[start_row], 0, ROWS_PER_HAND * sizeof(matrix_row_t));
+    hand_present[hand] = false;
     return;
   }
+  if (got != (int)sizeof(buf)) {
+    return;
+  }
+
+  /* A (re)connected half has lost its LED state; have it resent. */
+  if (!hand_present[hand]) {
+    hand_present[hand] = true;
+    model100_leds_resend(hand);
+  }
+
   /* Only KEYDATA replies carry a fresh row snapshot; the scanner returns other
    * reply types (or no-data) when nothing new is available — leave the matrix
    * untouched in that case so held keys stay held. */
@@ -165,13 +200,7 @@ static void i2c_read_hand(int hand, matrix_row_t current_matrix[]) {
     return;
   }
 
-  int start_row = hand ? ROWS_PER_HAND : 0;
   memcpy(&current_matrix[start_row], &buf[1], ROWS_PER_HAND);
-}
-
-static void i2c_set_keyscan_interval(int hand, int delay) {
-  uint8_t buf[] = {TWI_CMD_KEYSCAN_INTERVAL, (uint8_t)delay};
-  i2c_poll_write(I2C_ADDR(hand), buf, sizeof(buf));
 }
 
 void matrix_init_custom(void) {
@@ -186,8 +215,9 @@ void matrix_init_custom(void) {
 
   i2c_poll_setup();
 
-  i2c_set_keyscan_interval(LEFT, 2);
-  i2c_set_keyscan_interval(RIGHT, 2);
+  /* The scanners' keyscan interval (and with it their debounce) is left at the
+   * firmware default, as Kaleidoscope does; it only lowers it in hardware test
+   * mode, to disable the debouncer. */
 }
 
 bool matrix_scan_custom(matrix_row_t current_matrix[]) {
