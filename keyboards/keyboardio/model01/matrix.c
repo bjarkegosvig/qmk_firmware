@@ -61,29 +61,37 @@ static int i2c_read_hand(int hand) {
   return 0;
 }
 
-static int i2c_set_keyscan_interval(int hand, int delay) {
-  uint8_t buf[] = {TWI_CMD_KEYSCAN_INTERVAL, delay};
-  i2c_status_t ret = i2c_transmit(I2C_ADDR(hand), buf, sizeof(buf), I2C_TIMEOUT);
-  return ret;
-}
-
 void matrix_init(void) {
   /* Ensure scanner power is on - else right hand will not work */
   gpio_set_pin_output(C7);
   gpio_write_pin_high(C7);
 
+  /* Leave the scanners' keyscan interval at their firmware default, as
+   * Kaleidoscope does; interval 2 is only meant for hardware test mode. */
   i2c_init();
-  i2c_set_keyscan_interval(LEFT, 2);
-  i2c_set_keyscan_interval(RIGHT, 2);
   memset(rows, 0, sizeof(rows));
 
   matrix_init_kb();
 }
 
+static bool hand_unreachable[2];
+
+static int scan_hand(int hand) {
+  int ret = i2c_read_hand(hand);
+  bool unreachable = (ret == 1);
+
+  /* A reconnected half comes back with its LEDs reset. */
+  if (hand_unreachable[hand] && !unreachable)
+    model01_leds_resend(hand);
+  hand_unreachable[hand] = unreachable;
+
+  return ret;
+}
+
 uint8_t matrix_scan(void) {
   uint8_t ret = 0;
-  ret |= i2c_read_hand(LEFT);
-  ret |= i2c_read_hand(RIGHT);
+  ret |= scan_hand(LEFT);
+  ret |= scan_hand(RIGHT);
   matrix_scan_kb();
   return ret;
 }

@@ -19,3 +19,10 @@
 
 void set_all_leds_to(uint8_t r, uint8_t g, uint8_t b);
 void set_led_to(int led, uint8_t r, uint8_t g, uint8_t b);
+
+/* Resend all LEDs of one half, e.g. after it has been reconnected. */
+void model01_leds_resend(uint8_t hand);
+
+/* Retry LED data that could not be delivered. Must run periodically, also
+ * while suspended, since RGB matrix stops flushing when lighting is off. */
+void model01_leds_task(void);

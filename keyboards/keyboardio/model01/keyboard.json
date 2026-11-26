@@ -41,6 +41,7 @@
       "pixel_fractal": true
     },
     "driver": "custom",
+    "sleep": true,
     "layout": [
         {"matrix": [3, 7], "x": 3, "y": 35, "flags": 4},
         {"matrix": [2, 7], "x": 0, "y": 26, "flags": 4},

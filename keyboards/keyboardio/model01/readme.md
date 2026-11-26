@@ -10,6 +10,14 @@ Make example for this keyboard (after setting up your build environment):
 
     make keyboardio/model01:default
 
+To build the `bknudsen` keymap:
+
+    make keyboardio/model01:bknudsen
+
+Or with the `qmk` command:
+
+    qmk compile -kb keyboardio/model01 -km bknudsen
+
 See the [build environment setup](https://docs.qmk.fm/#/getting_started_build_tools) and the [make instructions](https://docs.qmk.fm/#/getting_started_make_guide) for more information.
 Brand new to QMK? Start with our [Complete Newbs Guide](https://docs.qmk.fm/#/newbs).
 
@@ -29,9 +37,15 @@ This implements the standard keymap, including mousekeys.
 
 It doesn't do cursor warping - QMK does not support absolute mouse positioning.
 
-LED support is limited. Gamma compensation and the high speed batch update
-functions supported by the hardware are not implemented. The high current power
-switch is also not implemented, so if you try and turn all the LEDs on at full
-brightness, something may conk out.
+LED support uses gamma correction (CIE 1931 curve) and only resends LED data
+when it changes. LED banks are sent alternating between halves, as in
+Kaleidoscope. LEDs are turned off while the host is suspended. The high
+current power path is enabled. All LED channels are capped at
+`MODEL01_LED_MAX_VALUE` (default 160, see `config.h`) to limit current draw;
+raising it towards 255 may draw more than the host can supply.
 
-Hotplugging the two halves works but is not extensively tested.
+The scanners' keyscan interval (and therefore their built-in debounce) is left
+at the scanner firmware default.
+
+Hotplugging the two halves works but is not extensively tested. A disconnected
+half is retried periodically, and its LEDs are refreshed once it reconnects.

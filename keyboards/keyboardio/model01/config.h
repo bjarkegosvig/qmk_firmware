@@ -20,3 +20,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 /* key matrix size; rows are doubled for split */
 #define MATRIX_ROWS 8
 #define MATRIX_COLS 8
+
+/* Hardware brightness cap applied to every LED channel (0-255), whatever set
+ * the colour. 160 matches Kaleidoscope's solid colours, which are calibrated
+ * to draw 500mA or less. Set to 255 to disable the cap. */
+#ifndef MODEL01_LED_MAX_VALUE
+#    define MODEL01_LED_MAX_VALUE 160
+#endif
